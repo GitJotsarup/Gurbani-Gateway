@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import ttk
 import os
 
+# Saving the python script as '.pyw' file instead of '.py' will remove command window.
+
 class GurbaniGateway(ttk.Frame):
 
     def __init__(self, master=None):
@@ -15,6 +17,17 @@ class GurbaniGateway(ttk.Frame):
         self.master.geometry("1920x1080")
 
         self.presenter_window = None
+        # Initialize labels
+        self.english_label = None
+        self.punjabi_label = None
+        self.transliteration_label = None
+
+        # Initialize display options
+        self.display_options = {"punjabi": True}
+
+        self.english_label = ttk.Label(self.english_label, text="english")
+        self.punjabi_label = ttk.Label(self.punjabi_label, text="english")
+        self.transliteration_label = ttk.Label(self.transliteration_label, text="english")
 
         # create a style for the ttk widgets
         self.style = ttk.Style()
@@ -53,22 +66,21 @@ class GurbaniGateway(ttk.Frame):
         # Panedwindow
         self.paned = ttk.PanedWindow(self)
         self.paned.place(x=650, y=52.5, height=350, width=610)
-
         # Notebook, pane #1
         self.pane_1 = ttk.Frame(self.paned, padding=5)
         self.paned.add(self.pane_1, weight=3)
-
         # Notebook, pane #1
         self.notebook = ttk.Notebook(self.pane_1)
         self.notebook.pack(fill="both", expand=True)
-
         # dharna display box
         self.dharna_disbox = ttk.Frame(self.notebook)
         self.notebook.add(self.dharna_disbox, text="Dharna")
-
         # add text widget to the frame
         self.dharna_text = tk.Text(self.dharna_disbox, wrap="word", bg='black', state='disabled')
         self.dharna_text.grid(row=0, column=0, sticky="nsew")
+
+        self.presenter_notebook = None
+        self.presenter_dharna_disbox = None
 
         # add scrollbars to the text widget
         self.dharna_vscrollbar = ttk.Scrollbar(self.dharna_disbox, orient="vertical", command=self.dharna_text.yview)
@@ -97,6 +109,8 @@ class GurbaniGateway(ttk.Frame):
 
         # defining the dharna frame widget
         self.dharna_frame = ttk.Frame(self.master)
+
+        self.presenter_window_created = False # to check if a window is already created or not
 
     def on_line_select(self, event):
         selection = event.widget.selection()
@@ -201,32 +215,38 @@ class GurbaniGateway(ttk.Frame):
         return self.presenter_window_created
 
     def open_presenter_view(self, dharna, line_number):
+
+        self.punjabi_label = None
+        self.transliteration_label = None
+        self.english_label = None
+
         if self.presenter_button_clicked:
             if not self.presenter_window_created:
+                print("created")
                 # create a new window for the presenter view
                 self.presenter_window = tk.Toplevel(self.master)
                 self.presenter_window.style = ttk.Style()
                 self.presenter_window.title("Presenter View")
+                # presenter_window.attributes("-fullscreen", True) # overlay
+
+                presenter_window = self.presenter_window
+
+                # add a protocol to the presenter window to handle closing
+                presenter_window.protocol("WM_DELETE_WINDOW", lambda: self.exit_presenter_view(presenter_window))
 
                 # set the presenter_window_created flag to True
                 self.presenter_window_created = True
 
-            # use the existing window
-            presenter_window = self.presenter_window
-            
-            # create a new window for the presenter view
-            presenter_window = tk.Toplevel(self.master)
-            presenter_window.style = ttk.Style()
-            #presenter_window.attributes("-fullscreen", True) # overlay
-            presenter_window.title("Presenter View")
-
-            for widget in self.dharna_disbox.winfo_children():
-                widget.destroy()
-
             # read display options from the json file
             with open("display_options.json", "r") as f:
                 display_options = json.load(f)
-            
+
+            # use the existing window
+            presenter_window = self.presenter_window
+
+            for widget in presenter_window.winfo_children():
+                widget.destroy()
+
             # create a notebook widget for the presenter view
             presenter_notebook = ttk.Notebook(presenter_window)
             presenter_notebook.pack(fill="both", expand=True)
@@ -234,14 +254,6 @@ class GurbaniGateway(ttk.Frame):
             # create a frame to hold the dharna display box in the presenter view
             presenter_dharna_disbox = ttk.Frame(presenter_notebook)
             presenter_notebook.add(presenter_dharna_disbox, text="Dharna")
-
-            # add a button to exit the presenter view
-            #exit_button = ttk.Button(presenter_window, text="Exit", command=lambda: self.exit_presenter_view(presenter_window))
-            #exit_button.pack(side="bottom", pady=10)
-
-            # bind the escape key to the exit button and set presenter_button_clicked to False
-            presenter_window.bind("<Escape>", lambda _: self.exit_presenter_view(presenter_window))
-
 
             # set the row and column configuration of the presenter_dharna_disbox frame
             presenter_dharna_disbox.rowconfigure(0, weight=1)
@@ -273,7 +285,6 @@ class GurbaniGateway(ttk.Frame):
 
             # set the notebook focus to the presenter dharna display box
             presenter_notebook.select(presenter_dharna_disbox)
-
 
     def open_settings(self):
         # create a settings pop-up menu
