@@ -1,5 +1,3 @@
-# Copyright © 2021 rdbende <rdbende@gmail.com>
-
 source [file join [file dirname [info script]] theme light.tcl]
 source [file join [file dirname [info script]] theme dark.tcl]
 
@@ -10,9 +8,15 @@ proc set_theme {mode} {
 		ttk::style theme use "azure-dark"
 
 		array set colors {
+            # -fg             "#ffffff"
+            # -bg             "#000000"
+            # -disabledfg     "#555555"
+            # -disabledbg     "#737373"
+            # -selectfg       "#ffffff"
+            # -selectbg       "#007fff"
             -fg             "#ffffff"
-            -bg             "#000000"
-            -disabledfg     "#555555"
+            -bg             "#333333"
+            -disabledfg     "#ffffff"
             -disabledbg     "#737373"
             -selectfg       "#ffffff"
             -selectbg       "#007fff"
@@ -43,8 +47,8 @@ proc set_theme {mode} {
 
         ttk::style map . -foreground [list disabled $colors(-disabledfg)]
         ttk::style configure Treeview \
-            -font {"Segoe Ui" 12} \
-            -rowheight 30
+            -font {"GurbaniAkharHeavy" 13} \
+            -rowheight 50
 
         option add *font [ttk::style lookup . -font]
         option add *Menu.selectcolor $colors(-fg)
@@ -84,6 +88,9 @@ proc set_theme {mode} {
             activeForeground [ttk::style lookup . -selectforeground]
 
         ttk::style map . -foreground [list disabled $colors(-disabledfg)]
+        ttk::style configure Treeview \
+            -font {"Segoe Ui" 13} \
+            -rowheight 30
 
         option add *font [ttk::style lookup . -font]
         option add *Menu.selectcolor $colors(-fg)
